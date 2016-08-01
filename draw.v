@@ -38,11 +38,11 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 
 	// x output is the sum of x's starting postion and x's current counter
 	// likewise for y
-	assign x_cord = x_pos + x_counter;
-	assign y_cord = y_pos + y_counter;
+	assign x_cord = x_pos + x_count;
+	assign y_cord = y_pos + y_count;
 
 	// output colour white if erase == 0 and reset_n == 0, otherwise black
-	assign colourOut = ((erase == 0) && (reset_n == 0))? 3'b111 : 3'b000;
+	assign colourOut = ((erase == 0) && (reset_n == 1))? 3'b111 : 3'b000;
 
 	// enable VGA to write if the item is still incomplete
 	assign plot = (complete == 0)? 1 : 0;
@@ -51,42 +51,42 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 	// based on press or garbage, and position 0 - 3
 	always @(*) begin
 		case ({item, position}) 
-			{1, 0}:
+			{1'b1, 2'b00}:
 				begin
 					x_pos = 0;
 					y_pos = 0;
 				end
-			{1, 1}:
+			{1'b1, 2'b01}:
 				begin
 					x_pos = 40;
 					y_pos = 0;
 				end
-			{1, 2}:
+			{1'b1, 2'b10}:
 				begin
 					x_pos = 80;
 					y_pos = 0;
 				end
-			{1, 3}:
+			{1'b1, 2'b1}:
 				begin
 					x_pos = 120;
 					y_pos = 0;
 				end
-			{0, 0}:
+			{1'b0, 2'b00}:
 				begin
 					x_pos = 10;
 					y_pos = 100;
 				end
-			{0, 1}:
+			{1'b0, 2'b01}:
 				begin
 					x_pos = 50;
 					y_pos = 100;
 				end
-			{0, 2}:
+			{1'b0, 2'b10}:
 				begin
 					x_pos = 90;
 					y_pos = 100;
 				end
-			{0, 3}:
+			{1'b0, 2'b11}:
 				begin
 					x_pos = 130;
 					y_pos = 100;
@@ -113,7 +113,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 					// draw if the item is still incomplete
 					else if (complete == 0) begin
 						// draw horizontal lines
-						else if ((x_count < 39) && (y_count < 60)) begin
+						if ((x_count < 39) && (y_count < 60)) begin
 							x_count <= x_count + 1;
 						end
 						// end of the line, go to the beginning of next line
@@ -140,7 +140,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 					// draw if the item is still incomplete
 					else if (complete == 0) begin
 						// draw horizontal lines
-						else if ((x_count < 19) && (y_count < 20)) begin
+						if ((x_count < 19) && (y_count < 20)) begin
 							x_count <= x_count + 1;
 						end
 						// end of the line, go to the beginning of next line
