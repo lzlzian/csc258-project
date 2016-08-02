@@ -31,7 +31,7 @@ module project_top
 
     // KEY TO PLAY THE GAME
     wire hit;
-    assign hit = KEY[4];
+    assign hit = KEY[3];
 
 	// Do not change the following outputs
 	output        	VGA_CLK;               	//	VGA Clock
@@ -78,6 +78,10 @@ module project_top
 	wire enable;
 	reg [1:0] counter = 2'b01;
     reg [1:0] prev_counter = 2'b00;
+    reg [2:0] state_f = 3'b000;
+    reg [1:0] state_g = 2'b11;
+    reg [11:0] delay = 0;
+    reg [8:0] delay2 = 0;
 	assign timer = 10000000;
 	rateDivider RD(timer, CLOCK_50, enable);
 
@@ -97,110 +101,156 @@ module project_top
     reg [1:0] position;
     draw d0(CLOCK_50, reset_n, item, erase, position, x, y, colour, writeEn);
 
-    // declare garbage position variable and the random number holder
+    // declare garbage position variable and the random number generator
     // 0-3: garbage position, 4: currently no garbage
     reg [2:0] garb = 3'b100;
-    reg [1:0] rng;
-
+    wire [4:0] rng;
+    random r0(CLOCK_50, reset_n, rng);
 
 
     // *** DRAW ***
     // use counter to track press position
-    always@(posedge enable) begin
+    always@(posedge CLOCK_50) begin
 
         // reset
-        if (!reset_n) begin
+    	if (!reset_n) begin
             counter <= 2'b01;
             prev_counter <= 2'b00;
+            state_f <= 2'b000;
+            delay <= 0;
             garb <= 3'b100;
         end
 
-        // move press back and forth
-        else if (counter == 2'b00)  begin
-            prev_counter <= counter;
-            counter <= counter + 1;
-        end
-        else if (counter == 2'b11) begin
-            prev_counter <= counter;
-            counter <= counter - 1;
-        end
-        else if (counter > prev_counter) begin
-            prev_counter <= counter;
-            counter <= counter + 1;
-        end
-        else if (counter < prev_counter) begin
-            prev_counter <= counter;
-            counter <= counter - 1;
-        end
-
-        // generate a garbage if there is currently none
-        if (garb == 3'b100) begin
-            rng <= $random;
-            garb <= 3'b000 + rng;
-        end
-
-        // draw the garbage
-        erase <= 1'b0;
-        position <= garb[1:0];
-        item <= 1'b0;
-
-        // wait for garbage to finish drawing
-        repeat (401) begin
-            @ (posedge CLOCK_50) ;
-        end
-
-        // draw the presses
-        // erase previous press
-        erase <= 1'b1;
-        position <= prev_counter;
-        item <= 1'b1;
-
-        // wait for erase to finish
-        repeat (2401) begin
-            @ (posedge CLOCK_50) ;
-        end
-
-        // draw current press
-        erase <= 1'b0;
-        position <= counter;
-        item <= 1'b1;
-
-    end    // end of always
-
-	
-
-    // adding score
-    // triggers when hit button or reset button is pressed
-	always@(hit or reset_n) begin
-
-        // reset with the VGA, not with other modules
+	    // reset score
+	    // reset with the VGA, not with other modules
 		if (!resetn) begin
 			score <= 8'b00000000;
+			state_g <= 2'b11;
 		end
+
+	    // move press back and forth
+        else if (enable) begin
+
+	        if (counter == 2'b00)  begin
+	            prev_counter <= counter;
+	            counter <= counter + 1;
+	        end
+	        else if (counter == 2'b11) begin
+	            prev_counter <= counter;
+	            counter <= counter - 1;
+	        end
+	        else if (counter > prev_counter) begin
+	            prev_counter <= counter;
+	            counter <= counter + 1;
+	        end
+	        else if (counter < prev_counter) begin
+	            prev_counter <= counter;
+	            counter <= counter - 1;
+	        end
+
+	        // generate a garbage if there is currently none
+	        if (garb == 3'b100) begin
+	            garb <= 3'b000 + rng[1:0];
+	        end
+
+	        // reset the FSM
+	        state_f <= 3'b000;
+	    end
+
+
+	    // draw
+	    case(state_f)
+
+	    	// draw the garbage
+	    	3'b000: begin
+		        erase <= 1'b0;
+		        position <= garb[1:0];
+		        item <= 1'b0;
+		        state_f <= 3'b001;
+		    end
+
+		    // wait for garbage to finish drawing
+		    3'b001: begin
+		    	if (delay == 401) begin
+		    		state_f <= 3'b010;
+		    		delay <= 0;
+				end
+		    	else
+		    		delay <= delay + 1;
+		    end
+		    
+		    // erase previous press    
+		    3'b010: begin
+		        erase <= 1'b1;
+		        position <= prev_counter;
+		        item <= 1'b1;
+		        state_f <= 3'b011;
+		    end
+
+		    // wait for erase to finish
+		    3'b011: begin
+		        if (delay == 2401) begin
+		    		state_f <= 3'b100;
+		    		delay <= 0;
+					end
+		    	else
+		    		delay <= delay + 1;
+		    end
+
+		    // draw current press
+		    3'b100: begin
+		        erase <= 1'b0;
+		        position <= counter;
+		        item <= 1'b1;
+		        state_f <= 3'b111;
+		    end
+
+		    // do nothing
+		    3'b111: 
+		    	state_f <= 3'b111;
+		endcase
 		
         // hit detection and adding score
         // button pressed
         if (!hit) begin
             // garbage is below the press
-            // erase the garbage
-            if (counter == garb) begin
+            // start the FSM
+            if (counter == garb)
+            	state_g <= 2'b00;
+        end
+
+        case(state_g)
+			// erase the garbage
+    		2'b00: begin
                 erase <= 1'b1;
                 position <= garb;
                 item <= 1'b0;
-
-                // wait for garbage to finish erasing
-                repeat (401) begin
-                    @ (posedge CLOCK_50) ;
-                end
-
-                // set garb to 3'b100, aka no current garbage
-                garb <= 3'b100;
-
-                // add score
-                score <= score + 1;
+                state_g <= 2'b01;
             end
-        end
-					
+
+            // wait for garbage to finish erasing
+            2'b01: begin
+            	if (delay2 == 401) begin
+		    		state_g <= 2'b10;
+		    		delay2 <= 0;
+					end
+		    	else
+		    		delay2 <= delay2 + 1;
+		   	end
+                
+            // set garb to 3'b100, aka no current garbage
+            // add score
+            2'b10: begin
+                garb <= 3'b100;
+                score <= score + 1;
+                state_g <= 2'b11;
+            end
+
+            // do nothing
+            2'b11: 
+            	state_g <= 2'b11;
+
+		endcase
 	end    // end of always
 	
 endmodule
