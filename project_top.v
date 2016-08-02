@@ -4,8 +4,9 @@ module project_top
 	(
     	CLOCK_50,                    	//	On Board 50 MHz
     	// Your inputs and outputs here
-            	KEY,
-            	SW,
+        KEY,
+        HEX0,
+		HEX1,
     	// The ports below are for the VGA output.  Do not change.
     	VGA_CLK,                       	//	VGA Clock
     	VGA_HS,                        	//	VGA H_SYNC
@@ -14,9 +15,7 @@ module project_top
     	VGA_SYNC_N,                    	//	VGA SYNC
     	VGA_R,                       	//	VGA Red[9:0]
     	VGA_G,                         	//	VGA Green[9:0]
-    	VGA_B,                       	//	VGA Blue[9:0]
-		HEX0,
-		HEX1
+    	VGA_B                       	//	VGA Blue[9:0]
 	);
 
 	input CLOCK_50;            	//	50 MHz
@@ -142,7 +141,7 @@ module project_top
 
         // draw the garbage
         erase <= 1'b0;
-        position <= garb[0:1];
+        position <= garb[1:0];
         item <= 1'b0;
 
         // wait for garbage to finish drawing
