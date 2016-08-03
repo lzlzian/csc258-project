@@ -56,7 +56,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 					x_pos = 0;
 					y_pos = 0;
 				end
-			{1'b1, 3'b001}, {1'b1, 3'b110}:
+			{1'b1, 3'b001}, {1'b1, 3'b101}:
 				begin
 					x_pos = 40;
 					y_pos = 0;

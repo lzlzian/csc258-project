@@ -77,7 +77,8 @@ module project_top
     	defparam VGA.BITS_PER_COLOUR_CHANNEL = 1;
     	defparam VGA.BACKGROUND_IMAGE = "black.mif";
 
-    // instantiate rateDivider and counter
+    // instantiate rateDivider and 
+	 
 	wire [27:0] timer;
 	wire enable;
 	reg [2:0] counter = 3'b000;
@@ -120,19 +121,13 @@ module project_top
 	 
 	 always@(posedge enable) begin
 		// enable
-		if (enable) begin
-		
-				// generate a garbage if there is currently none
-	      //  if (garb == 3'b100) 
-	      //      garb <= 3'b000 + rng[1:0];
 				
 				// move press back and forth
-				if (counter == 3'b110) 
+				if (counter == 3'b101) 
 					counter <= 3'b000;
 				else 
 					counter <= counter + 1'b1;
 
-	    end // end of enable 
 		 
 	 end 
 	 
@@ -143,9 +138,15 @@ module project_top
     // use counter to track press position
     always@(posedge CLOCK_50 or posedge enable) begin
 	 
-		if (enable) 
+		if (enable) begin
 				        // reset the FSM
 	        state_f <= 3'b000;
+			  
+			  // generate a garbage if there is currently none
+	        if (garb == 3'b100) 
+	            garb <= 3'b000 + rng[1:0];
+		end
+
 			  
 		
 		else begin
@@ -192,7 +193,7 @@ module project_top
 		    3'b010: begin
 		        erase <= 1'b1;
 				  if (counter == 3'b000) 
-						position <= 3'b110;
+						position <= 3'b101;
 				  else
 						position <= counter - 3'b001;
 		        item <= 1'b1;

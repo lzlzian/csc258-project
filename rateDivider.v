@@ -1,20 +1,25 @@
 module rateDivider(maxTime,clk,en);
 
-	input [27:0] maxTime;
-	input clk;
+    input [27:0] maxTime;
 
-	output en;
+    input clk;
 
-	reg [27:0] timer = 0;
+    output en;
 
-	always@(posedge clk) begin
-    	if (timer==maxTime)
-        	timer <= 0;
-    	else
-        	timer <= timer + 1;
-	end    // end of always
+    reg [27:0] timer = 0;
 
-	assign en  = (timer == 0) ? 1 : 0;
+    always@(posedge clk) begin
+
+        if (timer==maxTime) 
+
+            timer <= 0;
+
+        else
+
+            timer <= timer + 1;
+
+    end
+
+    assign en  = (timer == maxTime) ? 1 : 0;
 
 endmodule
-
