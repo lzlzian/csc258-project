@@ -10,7 +10,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 	input erase;
 
 	// position: 0 to 3
-	input [1:0] position;
+	input [2:0] position;
 
 	// x and y coordinates final outputs
 	output [7:0] x_cord;
@@ -34,7 +34,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 
 	// signal if the item has been drawn
 	// 1 - completed, 0 - incomplete
-	reg complete = 0;
+	// reg complete = 0;
 
 	// x output is the sum of x's starting postion and x's current counter
 	// likewise for y
@@ -45,48 +45,48 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 	assign colourOut = ((erase == 0) && (reset_n == 1))? 3'b111 : 3'b000;
 
 	// enable VGA to write if the item is still incomplete
-	assign plot = (complete == 0)? 1 : 0;
+	assign plot = 1'b1;
 
 	// always block to select starting x, y position
 	// based on press or garbage, and position 0 - 3
-	always @(*) begin
+	always @(item or position) begin
 		case ({item, position}) 
-			{1'b1, 2'b00}:
+			{1'b1, 3'b000}:
 				begin
 					x_pos = 0;
 					y_pos = 0;
 				end
-			{1'b1, 2'b01}:
+			{1'b1, 3'b001}, {1'b1, 3'b110}:
 				begin
 					x_pos = 40;
 					y_pos = 0;
 				end
-			{1'b1, 2'b10}:
+			{1'b1, 3'b010}, {1'b1, 3'b100}:
 				begin
 					x_pos = 80;
 					y_pos = 0;
 				end
-			{1'b1, 2'b1}:
+			{1'b1, 3'b011}:
 				begin
 					x_pos = 120;
 					y_pos = 0;
 				end
-			{1'b0, 2'b00}:
+			{1'b0, 3'b000}:
 				begin
 					x_pos = 10;
 					y_pos = 100;
 				end
-			{1'b0, 2'b01}:
+			{1'b0, 3'b001}:
 				begin
 					x_pos = 50;
 					y_pos = 100;
 				end
-			{1'b0, 2'b10}:
+			{1'b0, 3'b010}:
 				begin
 					x_pos = 90;
 					y_pos = 100;
 				end
-			{1'b0, 2'b11}:
+			{1'b0, 3'b011}:
 				begin
 					x_pos = 130;
 					y_pos = 100;
@@ -111,7 +111,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 						y_count <= 0;
 					end
 					// draw if the item is still incomplete
-					else if (complete == 0) begin
+					// else if (complete == 0) begin
 						// draw horizontal lines
 						if ((x_count < 39) && (y_count < 60)) begin
 							x_count <= x_count + 1;
@@ -125,9 +125,9 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 						else if ((x_count == 39) && (y_count) == 59) begin
 							x_count <= 0;
 							y_count <= 0;
-							complete <= 1;
+							// complete <= 1;
 						end
-					end
+					// end
 				end    // end of current case
 			// draw garbage
 			0:
@@ -138,7 +138,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 						y_count <= 0;
 					end
 					// draw if the item is still incomplete
-					else if (complete == 0) begin
+					// else if (complete == 0) begin
 						// draw horizontal lines
 						if ((x_count < 19) && (y_count < 20)) begin
 							x_count <= x_count + 1;
@@ -152,9 +152,9 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 						else if ((x_count == 19) && (y_count) == 19) begin
 							x_count <= 0;
 							y_count <= 0;
-							complete <= 1;
+							// complete <= 1;
 						end
-					end
+					// end
 				end    // end of current case
 		endcase
 	end    // end of always

@@ -28,6 +28,10 @@ module project_top
     // RESET BUTTON FOR MODULES
     wire reset_n;
     assign reset_n = KEY[1];
+	 
+	 // MANUAL CLOCK
+	  wire man_clk;
+	  assign man_clk = KEY[2];
 
     // KEY TO PLAY THE GAME
     wire hit;
@@ -55,7 +59,7 @@ module project_top
 	vga_adapter VGA(
         	.resetn(resetn),
         	.clock(CLOCK_50),
-        	.colour(colour_),
+        	.colour(colour),
         	.x(x),
         	.y(y),
         	.plot(writeEn),
@@ -76,14 +80,14 @@ module project_top
     // instantiate rateDivider and counter
 	wire [27:0] timer;
 	wire enable;
-	reg [1:0] counter = 2'b01;
-    reg [1:0] prev_counter = 2'b00;
+	reg [2:0] counter = 3'b000;
     reg [2:0] state_f = 3'b000;
     reg [1:0] state_g = 2'b11;
     reg [11:0] delay = 0;
     reg [8:0] delay2 = 0;
-	assign timer = 10000000;
+	assign timer = 100000000;
 	rateDivider RD(timer, CLOCK_50, enable);
+
 
     // declare score
     wire [7:0] score_;
@@ -94,31 +98,63 @@ module project_top
     output [6:0] HEX0;
     output [6:0] HEX1;
     hex_decoder h0(score[3:0], HEX0);
-    hex_decoder h1(score[7:4], HEX1);
+    //hex_decoder h1(score[7:4], HEX1);
 
     // instantiate the drawer
-    reg item, erase;
-    reg [1:0] position;
-    draw d0(CLOCK_50, reset_n, item, erase, position, x, y, colour, writeEn);
+	 reg item, erase;
+	 reg [1:0] position;
+    wire item_, erase_;
+    wire [1:0] position_;
+	 assign item_ = item;
+	 assign erase_ = erase;
+	 assign position_ = position;
+    draw d0(CLOCK_50, reset_n, item_, erase_, position_, x, y, colour, writeEn);
 
     // declare garbage position variable and the random number generator
     // 0-3: garbage position, 4: currently no garbage
     reg [2:0] garb = 3'b100;
     wire [4:0] rng;
     random r0(CLOCK_50, reset_n, rng);
+	 hex_decoder h2({1'b0,counter},HEX1);
+	 
+	 
+	 always@(posedge enable) begin
+		// enable
+		if (enable) begin
+		
+				// generate a garbage if there is currently none
+	      //  if (garb == 3'b100) 
+	      //      garb <= 3'b000 + rng[1:0];
+				
+				// move press back and forth
+				if (counter == 3'b110) 
+					counter <= 3'b000;
+				else 
+					counter <= counter + 1'b1;
 
+	    end // end of enable 
+		 
+	 end 
+	 
+	 
+	 
 
     // *** DRAW ***
     // use counter to track press position
-    always@(posedge CLOCK_50) begin
-
+    always@(posedge CLOCK_50 or posedge enable) begin
+	 
+		if (enable) 
+				        // reset the FSM
+	        state_f <= 3'b000;
+			  
+		
+		else begin
         // reset
     	if (!reset_n) begin
-            counter <= 2'b01;
-            prev_counter <= 2'b00;
-            state_f <= 2'b000;
+         //   counter <= 3'b000;
+            state_f <= 3'b000;
             delay <= 0;
-            garb <= 3'b100;
+           garb <= 3'b100;
         end
 
 	    // reset score
@@ -128,36 +164,9 @@ module project_top
 			state_g <= 2'b11;
 		end
 
-	    // move press back and forth
-        else if (enable) begin
-
-	        if (counter == 2'b00)  begin
-	            prev_counter <= counter;
-	            counter <= counter + 1;
-	        end
-	        else if (counter == 2'b11) begin
-	            prev_counter <= counter;
-	            counter <= counter - 1;
-	        end
-	        else if (counter > prev_counter) begin
-	            prev_counter <= counter;
-	            counter <= counter + 1;
-	        end
-	        else if (counter < prev_counter) begin
-	            prev_counter <= counter;
-	            counter <= counter - 1;
-	        end
-
-	        // generate a garbage if there is currently none
-	        if (garb == 3'b100) begin
-	            garb <= 3'b000 + rng[1:0];
-	        end
-
-	        // reset the FSM
-	        state_f <= 3'b000;
-	    end
 
 
+		 else begin 
 	    // draw
 	    case(state_f)
 
@@ -182,7 +191,10 @@ module project_top
 		    // erase previous press    
 		    3'b010: begin
 		        erase <= 1'b1;
-		        position <= prev_counter;
+				  if (counter == 3'b000) 
+						position <= 3'b110;
+				  else
+						position <= counter - 3'b001;
 		        item <= 1'b1;
 		        state_f <= 3'b011;
 		    end
@@ -215,7 +227,7 @@ module project_top
         if (!hit) begin
             // garbage is below the press
             // start the FSM
-            if (counter == garb)
+            if ((counter == garb[1:0]) && (garb != 3'b100))
             	state_g <= 2'b00;
         end
 
@@ -251,10 +263,9 @@ module project_top
             	state_g <= 2'b11;
 
 		endcase
+		end // end of non-reset actions
+	  end // end of CLOCK_50
 	end    // end of always
 	
 endmodule
-
-
-
 
