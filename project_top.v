@@ -75,7 +75,7 @@ module project_top
 
 	// garbage position variable and wire used for rng
 	// 0-3: garbage position, 3'b111: currently no garbage
-	reg [2:0] garb = 3'b111;
+	reg [2:0] garb = 3'b000;
 	wire [4:0] rng;
 
 
@@ -116,9 +116,9 @@ module project_top
 	output [6:0] HEX0;
 	output [6:0] HEX1;
 	hex_decoder h0(score[3:0], HEX0);
-	// hex_decoder h1(score[7:4], HEX1);
+	hex_decoder h1(score[7:4], HEX1);
 	// for testing purposes only
-	hex_decoder h2({1'b0,counter},HEX1);
+	// hex_decoder h2({1'b0,counter},HEX1);
 
 	// drawer
 	reg item, erase;
@@ -150,16 +150,9 @@ module project_top
 	always@(posedge CLOCK_50 or posedge enable) begin
 
 		// enable signal
-		if (enable) begin
-
+		if (enable)
 			// reset the FSM
 			state_f <= 3'b000;
-
-			// generate a garbage if there is currently none
-			if (garb == 3'b111) 
-				garb <= 3'b000 + rng[1:0];
-
-		end    // end of enable signal
 
 		// CLOCK_50 signal
 		else begin
@@ -169,14 +162,8 @@ module project_top
 				state_f <= 3'b000;
 				delay <= 0;
 				delay2 <= 0;
-				garb <= 3'b111;
-			end
-
-			// reset score
-			// reset with the VGA, not with other modules
-			else if (!resetn) begin
 				score <= 8'b00000000;
-				state_g <= 3'b000;
+				state_g <= 3'b100;
 			end
 
 			// if no reset signal is low
@@ -187,8 +174,7 @@ module project_top
 				// when button is pressed
 				// if garbage is underneath the counter position, aka the press
 				// start the FSM
-				if (((!hit) && (garb != 3'b111)) && ((garb == counter) || 
-				(garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100)))
+				if ((!hit) && ((garb == counter) || (garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100)))
 					state_g <= 3'b000;
 
 				// drawing FSM
@@ -238,18 +224,14 @@ module project_top
 				case(state_g)
 
 					// state 0
-					3'b001: begin
-						// erase the garbage if there is one
+					3'b000: begin
+						// erase the garbage
 						// and calculate score
-						if (garb != 3'b111) begin
-							erase <= 1'b1;
-							position <= garb;
-							item <= 1'b0;
-							state_g <= 3'b001;
-							score <= score + 1;
-						end
-						else
-							state_g <= 3'b001;
+						erase <= 1'b1;
+						position <= garb;
+						item <= 1'b0;
+						score <= score + 1;
+						state_g <= 3'b001;
 					end
 
 					// state 1
@@ -278,22 +260,11 @@ module project_top
 						item <= 1'b0;
 						state_g <= 3'b100;
 					end
-						
-					// state 4
-					// wait for garbage to finish drawing
-					3'b100: begin
-						if (delay2 == 401) begin
-							state_g <= 3'b101;
-							delay2 <= 0;
-						end
-						else
-							delay2 <= delay2 + 1;
-					end
 					
-					// state 5
+					// state 4
 					// do nothing
-					3'b101:
-						state_g <= 3'b101;
+					3'b100:
+						state_g <= 3'b100;
 
 				endcase    // end of erase garbage FSM
 
@@ -304,4 +275,3 @@ module project_top
 	end    // end of always
 
 endmodule    // end of project_top module
-
