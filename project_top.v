@@ -124,7 +124,7 @@ module project_top
 	reg item, erase;
 	reg [2:0] position;
 	wire item_, erase_;
-	wire [1:0] position_;
+	wire [2:0] position_;
 	assign item_ = item;
 	assign erase_ = erase;
 	assign position_ = position;
@@ -198,7 +198,7 @@ module project_top
 							item <= 1'b0;
 							state_f <= 3'b001;
 						end
-					end
+					end    // end of state 0
 
 					// state 1
 					// wait for garbage to finish drawing
@@ -209,7 +209,7 @@ module project_top
 						end
 						else
 							delay <= delay + 1;
-					end
+					end    // end of state 1
 
 					// state 2
 					// erase previous press    
@@ -221,7 +221,7 @@ module project_top
 							position <= counter - 3'b001;
 						item <= 1'b1;
 						state_f <= 3'b011;
-					end
+					end    // end of state 2
 
 					// state 3
 					// wait for erase to finish
@@ -232,7 +232,7 @@ module project_top
 						end
 						else
 							delay <= delay + 1;
-					end
+					end    // end of state 3
 
 					// state 4
 					// draw current press
@@ -241,7 +241,7 @@ module project_top
 						position <= counter;
 						item <= 1'b1;
 						state_f <= 3'b111;
-					end
+					end    // end of state 4
 
 					// state 5
 					// do nothing
@@ -256,9 +256,8 @@ module project_top
 					// if garbage is underneath the counter position, aka the press
 					// start the FSM
 					if ((garb != 3'b111) && ((garb == counter) || 
-					(grab == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100)))
+					(garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100)))
 						state_g <= 2'b00;
-					end
 				end
 
 				// FSM for erasing garbage and calculating score
