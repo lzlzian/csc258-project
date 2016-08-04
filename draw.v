@@ -91,6 +91,12 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 					x_pos = 130;
 					y_pos = 100;
 				end
+			// for testing purposes only
+			{1'b0, 3'b111}:
+				begin
+					x_pos = 0;
+					y_pos = 100;
+				end
 			default:
 				begin
 					x_pos = 0;
@@ -101,62 +107,56 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 
 	// always block to draw
 	always @(posedge clk) begin
+		
+		if (reset_n == 0) begin
+			x_count <= 0;
+			y_count <= 0;
+		end
+		
+		else begin
 		case (item)
 			// draw press
 			1: 
 				begin
-					// synchronous low reset
-					if (reset_n == 0) begin
+					// draw if the item is still incomplete
+					// else if (complete == 0) begin
+					// draw horizontal lines
+					if ((x_count < 39) && (y_count < 60)) begin
+						x_count <= x_count + 1;
+					end
+					// end of the line, go to the beginning of next line
+					else if ((x_count == 39) && (y_count) < 59) begin
+						x_count <= 0;
+						y_count <= y_count + 1;
+					end
+					// end of this press
+					else if ((x_count == 39) && (y_count) == 59) begin
 						x_count <= 0;
 						y_count <= 0;
 					end
-					// draw if the item is still incomplete
-					// else if (complete == 0) begin
-						// draw horizontal lines
-						if ((x_count < 39) && (y_count < 60)) begin
-							x_count <= x_count + 1;
-						end
-						// end of the line, go to the beginning of next line
-						else if ((x_count == 39) && (y_count) < 59) begin
-							x_count <= 0;
-							y_count <= y_count + 1;
-						end
-						// end of this press
-						else if ((x_count == 39) && (y_count) == 59) begin
-							x_count <= 0;
-							y_count <= 0;
-							// complete <= 1;
-						end
-					// end
 				end    // end of current case
 			// draw garbage
 			0:
 				begin
-					// synchronous low reset
-					if (reset_n == 0) begin
+					// draw if the item is still incomplete
+					// else if (complete == 0) begin
+					// draw horizontal lines
+					if ((x_count < 19) && (y_count < 20)) begin
+						x_count <= x_count + 1;
+					end
+					// end of the line, go to the beginning of next line
+					else if ((x_count == 19) && (y_count) < 19) begin
+						x_count <= 0;
+						y_count <= y_count + 1;
+					end
+					// end of this garbage
+					else if ((x_count == 19) && (y_count) == 19) begin
 						x_count <= 0;
 						y_count <= 0;
 					end
-					// draw if the item is still incomplete
-					// else if (complete == 0) begin
-						// draw horizontal lines
-						if ((x_count < 19) && (y_count < 20)) begin
-							x_count <= x_count + 1;
-						end
-						// end of the line, go to the beginning of next line
-						else if ((x_count == 19) && (y_count) < 19) begin
-							x_count <= 0;
-							y_count <= y_count + 1;
-						end
-						// end of this garbage
-						else if ((x_count == 19) && (y_count) == 19) begin
-							x_count <= 0;
-							y_count <= 0;
-							// complete <= 1;
-						end
-					// end
 				end    // end of current case
 		endcase
+		end
 	end    // end of always
 
 endmodule
