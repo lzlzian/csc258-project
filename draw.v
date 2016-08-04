@@ -9,7 +9,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 	// erase: 1 - erase, 0 - draw new
 	input erase;
 
-	// position: 0 to 3
+	// position: 0 to 5
 	input [2:0] position;
 
 	// x and y coordinates final outputs
