@@ -186,7 +186,7 @@ module project_top
 		    // drawing FSM
 		    case(state_f)
 
-		    	// state 0
+		    	// STATE 0
 		    	// draw the garbage
 		    	3'b000: begin
 		    		// if there is currently no garbage
@@ -202,7 +202,7 @@ module project_top
 				    end
 			    end
 
-			    // state 1
+			    // STATE 1
 			    // wait for garbage to finish drawing
 			    3'b001: begin
 			    	if (delay == 401) begin
@@ -213,7 +213,7 @@ module project_top
 			    		delay <= delay + 1;
 			    end
 
-			    // state 2
+			    // STATE 2
 			    // erase previous press    
 			    3'b010: begin
 			        erase <= 1'b1;
@@ -225,7 +225,7 @@ module project_top
 			        state_f <= 3'b011;
 			    end
 
-			    // state 3
+			    // STATE 3
 			    // wait for erase to finish
 			    3'b011: begin
 			        if (delay == 2401) begin
@@ -236,7 +236,7 @@ module project_top
 			    		delay <= delay + 1;
 			    end
 
-			    // state 4
+			    // STATE 4
 			    // draw current press
 			    3'b100: begin
 			        erase <= 1'b0;
@@ -245,7 +245,7 @@ module project_top
 			        state_f <= 3'b111;
 			    end
 
-			    // state 5
+			    // STATE 5
 			    // do nothing
 			    3'b111: 
 			    	state_f <= 3'b111;
@@ -266,7 +266,7 @@ module project_top
 	        // FSM for erasing garbage and calculating score
 	        case(state_g)
 
-	        	// state 0
+	        	// STATE 0
 				// erase the garbage
 	    		2'b00: begin
 	                erase <= 1'b1;
@@ -275,7 +275,7 @@ module project_top
 	                state_g <= 2'b01;
 	            end
 
-	            // state 1
+	            // STATE 1
 	            // wait for garbage to finish erasing
 	            2'b01: begin
 	            	if (delay2 == 401) begin
@@ -286,7 +286,7 @@ module project_top
 			    		delay2 <= delay2 + 1;
 			   	end
 	                
-	            // state 2    
+	            // STATE 2    
 	            // set garb to 3'b111, aka no current garbage
 	            // add score
 	            2'b10: begin
@@ -295,7 +295,7 @@ module project_top
 	                state_g <= 2'b11;
 	            end
 
-	            state 3
+	            // STATE 3
 	            // do nothing
 	            2'b11: 
 	            	state_g <= 2'b11;
