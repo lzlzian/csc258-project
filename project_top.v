@@ -155,10 +155,6 @@ module project_top
 			// reset the FSM
 			state_f <= 3'b000;
 
-			// generate a garbage if there is currently none
-			if (garb == 3'b111) 
-				garb <= 3'b000 + rng[1:0];
-
 		end    // end of enable signal
 
 		// CLOCK_50 signal
@@ -169,14 +165,6 @@ module project_top
 				state_f <= 3'b000;
 				delay <= 0;
 				delay2 <= 0;
-				garb <= 3'b111;
-			end
-
-			// reset score
-			// reset with the VGA, not with other modules
-			else if (!resetn) begin
-				score <= 8'b00000000;
-				state_g <= 2'b11;
 			end
 
 			// if no reset signal is low
@@ -248,62 +236,85 @@ module project_top
 					3'b111: 
 						state_f <= 3'b111;
 
-				endcase    // end of drawing FSM
-
-				// hit detection and adding score
-				// when button is pressed
-				if (!hit) begin
-					// if garbage is underneath the counter position, aka the press
-					// start the FSM
-					if ((garb != 3'b111) && ((garb == counter) || 
-					(garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100)))
-						state_g <= 2'b00;
-				end
-
-				// FSM for erasing garbage and calculating score
-				case(state_g)
-
-					// state 0
-					// erase the garbage
-					2'b00: begin
-						erase <= 1'b1;
-						position <= garb;
-						item <= 1'b0;
-						state_g <= 2'b01;
-					end
-
-					// state 1
-					// wait for garbage to finish erasing
-					2'b01: begin
-						if (delay2 == 401) begin
-							state_g <= 2'b10;
-							delay2 <= 0;
-						end
-						else
-							delay2 <= delay2 + 1;
-					end
-
-					// state 2    
-					// set garb to 3'b111, aka no current garbage
-					// add score
-					2'b10: begin
-						garb <= 3'b111;
-						score <= score + 1;
-						state_g <= 2'b11;
-					end
-
-					// state 3
-					// do nothing
-					2'b11: 
-						state_g <= 2'b11;
-
-				endcase    // end of erase garbage FSM
+				endcase
 
 			end    // end of non-reset actions
+
+		end    // end of CLOCK_50
+
+	end    // end of FSM for press
+
+	always@(posedge CLOCK_50 or posedge enable)
+
+		// enable
+		if (enable) begin
+			// generate a garbage if there is currently none
+			if (garb == 3'b111) 
+				garb <= 3'b000 + rng[1:0];
+		end
+
+		// CLOCK_50
+		else begin
+
+			// reset score
+			// reset with the VGA, not with other modules
+			if (!resetn) begin
+				score <= 8'b00000000;
+				state_g <= 2'b11;
+				// garb <= 3'b111;
+			end
+
+			// hit detection and adding score
+			// when button is pressed
+			if (!hit) begin
+				// if garbage is underneath the counter position, aka the press
+				// start the FSM
+				if ((garb != 3'b111) && ((garb == counter) || 
+				(garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100)))
+					state_g <= 2'b00;
+			end
+
+			// FSM for erasing garbage and calculating score
+			case(state_g)
+
+				// state 0
+				// erase the garbage
+				2'b00: begin
+					erase <= 1'b1;
+					position <= garb;
+					item <= 1'b0;
+					state_g <= 2'b01;
+				end
+
+				// state 1
+				// wait for garbage to finish erasing
+				2'b01: begin
+					if (delay2 == 401) begin
+						state_g <= 2'b10;
+						delay2 <= 0;
+					end
+					else
+						delay2 <= delay2 + 1;
+				end
+
+				// state 2    
+				// set garb to 3'b111, aka no current garbage
+				// add score
+				2'b10: begin
+					garb <= 3'b111;
+					score <= score + 1;
+					state_g <= 2'b11;
+				end
+
+				// state 3
+				// do nothing
+				2'b11: 
+					state_g <= 2'b11;
+
+			endcase    // end of erase garbage FSM
 
 		end    // end of CLOCK_50
 
 	end    // end of always
 
 endmodule    // end of project_top module
-
