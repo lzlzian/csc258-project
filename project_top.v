@@ -64,7 +64,6 @@ module project_top
 	// states and delays
 	reg [2:0] counter = 3'b000;
 	reg [2:0] state_f = 3'b000;
-	reg [2:0] state_g = 3'b000;
 	reg [11:0] delay = 0;
 	reg [8:0] delay2 = 0;
 
@@ -134,7 +133,7 @@ module project_top
 	random r0(CLOCK_50, reset_n, rng);
 
 
-
+	
 	// *** COUNTERs AND FSMs ***
 
 	// counter for press movement
@@ -145,7 +144,7 @@ module project_top
 		else 
 			counter <= counter + 1'b1;	 
 	end
-
+	
 	// FSMs the game
 	always@(posedge CLOCK_50 or posedge enable) begin
 
@@ -163,110 +162,103 @@ module project_top
 				delay <= 0;
 				delay2 <= 0;
 				score <= 8'b00000000;
-				state_g <= 3'b100;
 			end
 
 			// if no reset signal is low
 			else begin 
 				
-								
-				// hit detection and adding score
-				// when button is pressed
-				// if garbage is underneath the counter position, aka the press
-				// start the FSM
-				if ((!hit) && ((garb == counter) || (garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100)))
-					state_g <= 3'b000;
-
 				// drawing FSM
 				case(state_f)
 
 					// state 0
-					// erase previous press    
+					// erase the press and wait for it to finish
 					3'b000: begin
-						erase <= 1'b1;
-						if (counter == 3'b000) 
-							position <= 3'b101;
+						if (delay == 2401) begin
+							state_f <= 3'b001;
+							delay <= 0;
+						end
 						else
-							position <= counter - 3'b001;
-						item <= 1'b1;
-						state_f <= 3'b001;
-					end 
-
+							erase <= 1'b1;
+							if (counter == 3'b000) 
+								position <= 3'b101;
+							else
+								position <= counter - 3'b001;
+							item <= 1'b1;
+							delay <= delay + 1;
+					end    // end of state 0
+					
 					// state 1
-					// wait for erase to finish
+					// wait for draw to finish
 					3'b001: begin
 						if (delay == 2401) begin
 							state_f <= 3'b010;
 							delay <= 0;
 						end
 						else
+							erase <= 1'b0;
+							position <= counter;
+							item <= 1'b1;
 							delay <= delay + 1;
 					end    // end of state 1
-
+					
 					// state 2
-					// draw current press
+					// wait for garbage to finish drawing
 					3'b010: begin
-						erase <= 1'b0;
-						position <= counter;
-						item <= 1'b1;
-						state_f <= 3'b011;
-					end    // end of state 2
-
+						if (delay2 == 401) begin
+							state_f <= 3'b011;
+							delay2 <= 0;
+						end
+						else
+							erase <= 1'b0;
+							position <= garb;
+							item <= 1'b0;
+							delay2 <= delay2 + 1;
+					end
+					
 					// state 3
+					// idle until a hit is detected
+					3'b011: begin
+						if ((!hit) && ((garb == counter) || (garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100))) begin
+							state_f <= 3'b100;
+							score <= score + 1;
+						end
+						else
+							state_f <= 3'b011;
+					end
+							
+
+					// state 4
+					// wait for garbage to finish erasing
+					3'b100: begin
+						if (delay2 == 401) begin
+							state_f <= 3'b101;
+							delay2 <= 0;
+						end
+						else begin
+							erase <= 1'b1;
+							position <= garb;
+							item <= 1'b0;
+							delay2 <= delay2 + 1;
+						end
+					end
+
+					// state 5
+					// generate a new garbage
+					3'b101: begin
+						garb <= 3'b000 + rng[1:0];
+						state_f <= 3'b110;
+					end
+					
+					// state 6
 					// do nothing
-					3'b011: 
-						state_f <= 3'b011;
+					3'b110: 
+						state_f <= 3'b110;
+							
 
 				endcase    // end of drawing FSM				
 
 				
-				// FSM for erasing garbage and calculating score
-				case(state_g)
-
-					// state 0
-					3'b000: begin
-						// erase the garbage
-						// and calculate score
-						erase <= 1'b1;
-						position <= garb;
-						item <= 1'b0;
-						score <= score + 1;
-						state_g <= 3'b001;
-					end
-
-					// state 1
-					// wait for garbage to finish erasing
-					3'b001: begin
-						if (delay2 == 401) begin
-							state_g <= 3'b010;
-							delay2 <= 0;
-						end
-						else
-							delay2 <= delay2 + 1;
-					end
-
-					// state 2    
-					// generate new garbage
-					3'b010: begin
-						garb <= 3'b000 + rng[1:0];
-						state_g <= 3'b011;
-					end
-
-					// state 3
-					// draw the garbage
-					3'b011: begin
-						erase <= 1'b0;
-						position <= garb;
-						item <= 1'b0;
-						state_g <= 3'b100;
-					end
-					
-					// state 4
-					// do nothing
-					3'b100:
-						state_g <= 3'b100;
-
-				endcase    // end of erase garbage FSM
+				
 
 			end    // end of non-reset actions
 
@@ -275,3 +267,4 @@ module project_top
 	end    // end of always
 
 endmodule    // end of project_top module
+
