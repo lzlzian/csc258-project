@@ -9,6 +9,6 @@ by Huiyang Lu (contact: luhy559@gmail.com) and Yushan Lin (contact: yushanlin96@
 
 The game concept started as using a hydrolic press to crush garbages, hence the hammer is referred to as a 'press' in the code, and the mole as a 'garbage'.
 
-vga_*.* files and black.mif are VGA controller files provided by the course instructor.
+vga_\*.\* files and black.mif are VGA controller files provided by the course instructor.
 
 */
