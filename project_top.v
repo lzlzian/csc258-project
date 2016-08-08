@@ -145,8 +145,8 @@ module project_top
 	
 	
 	// changes game speed based on current score
-   always@(score) begin
-		if (score < 8'b8'b00000101)
+   	always@(score) begin
+		if (score < 8'b00000101)
 			maxTime = 100000000;
 		else if (score > 8'b00000100 && score < 8'b00001010)
 			maxTime = 80000000;
@@ -154,7 +154,7 @@ module project_top
 			maxTime = 60000000;		
 		else
 			maxTime = 50000000;
-   end
+   	end
 
 
 	// counter for press movement
