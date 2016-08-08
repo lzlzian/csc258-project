@@ -1,3 +1,12 @@
+
+
+
+// module to manipulate inputs to VGA controller 
+// to achieve drawing and erasing object on the display
+
+
+
+
 module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot);
 
 	// CLOCK_50 and reset_n
@@ -142,6 +151,9 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 						y_count <= y_count + 1;
 					end
 					// end of this garbage
+					// also takes care of the cases where x_count and y_count
+					// are way beyond garbage's size because they were previously
+					// used by press drawing
 					else begin
 						x_count <= 0;
 						y_count <= 0;
