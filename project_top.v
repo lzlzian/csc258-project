@@ -150,8 +150,6 @@ module project_top
 			maxTime = 100000000;
 		else if (score > 8'b00000100 && score < 8'b00001010)
 			maxTime = 80000000;
-		else if (score > 8'b00001001 && score < 8'b00010100)
-			maxTime = 60000000;		
 		else
 			maxTime = 50000000;
    	end
