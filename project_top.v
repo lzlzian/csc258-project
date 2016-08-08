@@ -153,7 +153,7 @@ module project_top
 		if (enable)
 			// reset the FSM
 			state_f <= 3'b000;
-
+			
 		// CLOCK_50 signal
 		else begin
 
@@ -175,7 +175,7 @@ module project_top
 					// wait for garbage to finish erasing
 					3'b000: begin
 						if (delay2 == 401) begin
-							state_f <= 3'b001;
+							state_f <= 3'b001	;
 							delay2 <= 0;
 						end
 						else begin
@@ -223,6 +223,7 @@ module project_top
 						if (delay == 2401) begin
 							state_f <= 3'b100;
 							delay <= 0;
+							prev_garb <= garb;
 						end
 						else
 							erase <= 1'b0;
@@ -235,20 +236,20 @@ module project_top
 					// idle until a hit is detected
 					// if hit detected, add score
 					3'b100: begin
-						prev_garb <= garb;
 						if ((!hit) && ((garb == counter) || (garb == 3'b001 && counter == 3'b101) || (garb == 3'b010 && counter == 3'b100))) begin
+							garb <= 3'b000 + rng[1:0];
 							state_f <= 3'b101;
 							score <= score + 1;
 						end
 						else
-							state_f <= 3'b011;
+							state_f <= 3'b100;
 					end
 					
 					// state 5
 					// generate a new garbage and idle
-					3'b101: 
-						garb <= 3'b000 + rng[1:0];
+					3'b101: begin
 						state_f <= 3'b101;
+					end
 							
 
 				endcase    // end of drawing FSM				
@@ -260,3 +261,4 @@ module project_top
 	end    // end of always
 
 endmodule    // end of project_top module
+
