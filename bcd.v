@@ -1,3 +1,4 @@
+// Binary to BCD(Binary Coded Decimal) converter for score display.
 module bcd(number, hundreds, tens, ones);
    // I/O Signal Definitions
    input  [7:0] number;
