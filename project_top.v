@@ -78,7 +78,6 @@ module project_top
 	// score
 	reg [7:0] score = 8'b00000000;
 
-
 	// garbage position variable and wire used for rng
 	// 0-3: garbage position, 3'b111: currently no garbage
 	reg [2:0] garb = 3'b000;
@@ -160,7 +159,6 @@ module project_top
 		else
 			maxTime = 50000000;
    	end
-
 
 	// counter for press movement
 	always@(posedge enable) begin
