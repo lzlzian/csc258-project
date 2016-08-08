@@ -32,10 +32,6 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 	reg [5:0] x_count = 0;
 	reg [5:0] y_count = 0;
 
-	// signal if the item has been drawn
-	// 1 - completed, 0 - incomplete
-	// reg complete = 0;
-
 	// x output is the sum of x's starting postion and x's current counter
 	// likewise for y
 	assign x_cord = x_pos + x_count;
@@ -46,6 +42,8 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 
 	// enable VGA to write if the item is still incomplete
 	assign plot = 1'b1;
+
+	
 
 	// always block to select starting x, y position
 	// based on press or garbage, and position 0 - 3
@@ -91,12 +89,6 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 					x_pos = 130;
 					y_pos = 100;
 				end
-			// for testing purposes only
-			{1'b0, 3'b111}:
-				begin
-					x_pos = 0;
-					y_pos = 100;
-				end
 			default:
 				begin
 					x_pos = 0;
@@ -130,7 +122,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 						y_count <= y_count + 1;
 					end
 					// end of this press
-					else if ((x_count == 39) && (y_count) == 59) begin
+					else begin
 						x_count <= 0;
 						y_count <= 0;
 					end
@@ -150,7 +142,7 @@ module draw(clk, reset_n, item, erase, position, x_cord, y_cord, colourOut, plot
 						y_count <= y_count + 1;
 					end
 					// end of this garbage
-					else if ((x_count == 19) && (y_count) == 19) begin
+					else begin
 						x_count <= 0;
 						y_count <= 0;
 					end
