@@ -1,3 +1,10 @@
+
+
+
+// clock divider to generate different clock rate than the onboard clock
+
+
+
 module rateDivider(maxTime,clk,en);
 
     input [27:0] maxTime;
