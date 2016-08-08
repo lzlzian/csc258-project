@@ -1,3 +1,10 @@
+
+
+
+// hex decoder module for displaying score on the hex displays
+
+
+
 module hex_decoder(hex_digit, segments);
 
 	input [3:0] hex_digit;
