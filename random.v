@@ -1,3 +1,10 @@
+
+
+
+// pseudo random number generator for generating garbages
+
+
+
 module random(
   input clk,
   input rst_n,
